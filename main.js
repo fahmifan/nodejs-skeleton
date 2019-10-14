@@ -7,7 +7,7 @@ const config = require('./config')
 const mongodb = require('./db/mongodb')
 const Routes = require('./routes')
 const httpsvc = require('./httpsvc')
-const UserRepo = require('./repository/user_repository')
+const UserRepo = require('./repository/mongodb/user_repository')
 
 const app = express()
 const port = process.env.HTTP_PORT || 3000

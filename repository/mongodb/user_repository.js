@@ -1,6 +1,6 @@
-const userModel = require('../model/user')
+const userModel = require('../../model/user')
 const mongodb = require('mongodb')
-const passwordUtil = require('../utils/password')
+const passwordUtil = require('../../utils/password')
 
 /**
  * @typedef {import('mongodb').Db} DB

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "nodemon": "nodemon",
-    "start": "nodemon --ignore node_modules/ main.js"
+    "start": "nodemon --ignore node_modules/ main.js",
+    "migrate": "node ./db/migration.js"
   },
   "keywords": [],
   "author": "",
