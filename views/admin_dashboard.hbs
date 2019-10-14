@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard</title>
+
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/css/uikit.min.css" />
+
+    <!-- UIkit JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit-icons.min.js"></script>
+
+    <!-- axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+
+<!-- start app -->
+<div class="uk-container uk-padding" id="app">
+    <div>
+        <button v-on:click="openUserModal(empty, 'create')"
+            class="uk-button uk-button-small uk-button-primary">
+            Add User
+        </button>
+        <button :disabled="!selectedIds.length" v-on:click="deleteMultiple()"
+            class="uk-button uk-button-small uk-button-danger">
+            Delete Selected
+        </button>
+        <button v-on:click="logout()"
+            class="uk-button uk-button-small uk-button-default">
+            Logout
+        </button>
+    </div>
+    <table class="uk-table">
+        <caption></caption>
+        <thead>
+            <tr>
+                <th></th>
+                <th>No</th>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(user, idx) in listUser" :key="user.id">
+                <td><input v-on:click="addChecked(user.id)" class="uk-checkbox" type="checkbox"></td>
+                <td><% idx+1 %></td>
+                <td><% user.username %></td>
+                <td><% user.name %></td>
+                <td>
+                    <button v-on:click="openUserModal(user, 'edit')" 
+                        class="uk-button uk-button-small uk-button-default">
+                        edit
+                    </button>
+    
+                    <button v-on:click="deleteUser(user.id)"
+                        class="uk-button uk-button-small uk-button-danger">
+                        delete
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- modal -->
+    <div id="modal-user" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+    
+            <button class="uk-modal-close-default" type="button" uk-close></button>
+        
+            <label for="name">Name</label> <br>
+            <input v-model="user.name" type="text" class="uk-input" placeholder="Name">
+    
+            <label for="username">Username</label>
+            <input class="uk-input" v-model="user.username" type="text" placeholder="Username">
+            
+            <label for="password">Password</label>
+            <input class="uk-input" v-model="user.password" type="password" placeholder="password">
+
+            <br>
+            <br>
+        
+            <button v-on:click="submitUser()" href="#modal-center" class="uk-button uk-button-small uk-button-primary">
+                Submit
+            </button>
+        </div>
+    </div>
+    
+
+</div>
+<!-- end app -->
+
+<script type="module">
+import { getAuthHeader, getUser, logoutRedirect } from '/js/utils.js'
+// add authorizaiton header
+axios.defaults.headers.common['Authorization'] = getAuthHeader();
+
+const emptyUser =  {
+    id: '',
+    nama: '',
+    username: '',
+    password: '',
+}
+
+const app = new Vue({
+    el: '#app',
+    delimiters: ["<%","%>"],
+    data() {
+        // application state
+        return {
+            empty: null,
+            listUser: [],
+            user: { ...emptyUser },
+            modalAction: '',
+            selectedIds: [],
+        }
+    },
+    mounted() {
+        this.getUsers()
+    },
+    methods: {
+        logout() {
+            logoutRedirect()
+        },
+        async deleteMultiple() {
+            try {
+                const payload = { ids: this.selectedIds }
+                await axios.delete('/api/users-multiple', { data: payload })
+                this.selectedIds = []
+                this.getUsers()
+                alert('success')
+            } catch (error) {
+                console.error(error)
+                alert('failed to delete')                
+            }
+        },
+        addChecked(id) {
+            const isContain = this.selectedIds.includes(id)
+            if (!isContain) {
+                this.selectedIds = [...this.selectedIds, id]
+            } else {
+                this.selectedIds = this.selectedIds.filter(v => v != id)
+            }
+
+        },
+        openUserModal(user, action) {
+            if (!action) {
+                alert("Something wrong!")
+                return
+            }
+
+            this.modalAction = action
+            if (action === 'edit') {
+                this.user = user
+            }
+
+            UIkit.modal('#modal-user').show()
+        },
+        async getUsers() {
+            try {
+                const { data } = await axios.get('/api/users')
+                this.listUser = data
+            } catch (err) {
+                console.error(err)
+                alert("failed to load users")
+            }
+        },
+        async deleteUser(id) {
+            try {
+                await axios.delete(`/api/users/${id}`)                
+                this.getUsers()
+                alert('success')
+            } catch (error) {
+                console.error(error)
+                alert('failed to delete')                
+            }
+        },
+        async createMhs() {
+            const { name, username, password } = this.user
+            if (!name || !username || !password) {
+                alert('name, username, password cannot empty!')
+                return
+            }
+
+            try {
+                const payload = { name, username, password }
+                await axios.post('/api/users', payload)
+                UIkit.modal('#modal-user').hide()
+                this.user = emptyUser
+                alert('success')
+
+                // update users
+                this.getUsers()
+            } catch (error) {
+                console.error(error)
+                this.user = emptyUser
+                UIkit.modal('#modal-user').hide()
+                alert('failed to add user')
+            }
+        },
+        async submitUser() {
+            switch (this.modalAction) {
+                case 'edit':
+                    console.log("update not implemented")
+                    break;
+            
+                case 'create': // create
+                    this.createMhs()
+                    break;
+            }
+        }
+    }
+})
+</script>
+
+</body>
+</html>

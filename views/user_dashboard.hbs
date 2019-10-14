@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard</title>
+
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/css/uikit.min.css" />
+
+    <!-- UIkit JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit-icons.min.js"></script>
+
+    <!-- axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+
+<!-- start app -->
+<div class="uk-container uk-padding uk-margin" id="app">
+
+<button class="uk-button uk-button-default" v-on:click="logout()">logout</button>
+<h2>Welcome <% user.name %></h2>
+
+<p>Username: <% user.username %></p>
+<p>Name: <% user.name %></p>
+<p>Role: Normal</p>
+
+</div>
+<!-- end app -->
+
+<script type="module">
+import { getAuthHeader, getUser, logoutRedirect } from '/js/utils.js'
+// add authorizaiton header
+axios.defaults.headers.common['Authorization'] = getAuthHeader();
+
+const emptyUser = {
+    id: '',
+    name: '',
+    username: '',
+    role: '',
+}
+
+const app = new Vue({
+    el: '#app',
+    delimiters: ["<%","%>"],
+    data() {
+        // application state
+        return {
+            user: getUser()
+        }
+    },
+    methods:  {
+        logout() {
+            logoutRedirect()
+        }
+    }
+})
+</script>
+
+</body>
+</html>

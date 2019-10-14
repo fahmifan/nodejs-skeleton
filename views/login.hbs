@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard</title>
+
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/css/uikit.min.css" />
+
+    <!-- UIkit JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.2.0/js/uikit-icons.min.js"></script>
+
+    <!-- axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+
+<!-- start app -->
+<div class="uk-container uk-padding uk-margin" id="app">
+
+<h2>Login</h2>
+<label for="username">Username</label> <br>
+<input v-model="user.username" class="uk-input" type="text" name="username">    
+
+<br> <br>
+<label for="password">Password</label> <br>
+<input v-model="user.password" class="uk-input" type="password" name="Password">    
+
+<br><br>
+<button class="uk-button uk-button-primary" v-on:click="login()">Submit</button>
+
+</div>
+<!-- end app -->
+
+<script type="module">
+import { saveUser, saveToken, authRedirect } from '/js/utils.js'
+
+const app = new Vue({
+    el: '#app',
+    delimiters: ["<%","%>"],
+    data() {
+        // application state
+        return {
+            user: {
+                username: '',
+                password: '',
+            }
+        }
+    },
+    methods: {
+        async login() {
+            const { username, password } = this.user
+            if (!username || !password) {
+                alert('username & password cannot be empty')
+                return
+            }
+
+            try {
+                const { data } = await axios.post('/api/login', { username, password })
+                saveUser(data.user)
+                saveToken(data.token)
+                authRedirect()
+            } catch(err) {
+                console.error(err)
+                alert('login failed. contact your admin')
+            }
+        }
+    }
+})
+</script>
+
+</body>
+</html>
